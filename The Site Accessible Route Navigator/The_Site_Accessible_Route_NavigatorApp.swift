@@ -11,7 +11,7 @@ import SwiftUI
 struct The_Site_Accessible_Route_NavigatorApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            OnboardingView()
         }
     }
 }
