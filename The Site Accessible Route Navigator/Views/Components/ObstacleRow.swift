@@ -27,6 +27,8 @@ struct ObstacleRow: View {
                         .font(.subheadline)
                         .fontWeight(.semibold)
                     
+                    Spacer()
+                    
                     Text(obstacle.severity.rawValue)
                         .font(.caption)
                         .fontWeight(.medium)
@@ -87,6 +89,7 @@ struct ObstacleRow: View {
                 }
             }
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
         .padding(12)
         .background(
             RoundedRectangle(cornerRadius: 12)
@@ -157,6 +160,7 @@ struct AccessibilityFeatureRow: View {
                 }
             }
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
         .padding(12)
         .background(
             RoundedRectangle(cornerRadius: 12)

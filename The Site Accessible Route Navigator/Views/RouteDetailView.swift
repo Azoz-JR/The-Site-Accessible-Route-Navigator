@@ -20,33 +20,55 @@ struct RouteDetailView: View {
     }
     
     var body: some View {
-        ScrollView {
-            VStack(spacing: 24) {
-                // Route selector if multiple routes available
-                if routes.count > 1 {
-                    routeSelector
+        ZStack(alignment: .bottom) {
+            ScrollView {
+                VStack(spacing: 24) {
+                    // Route selector if multiple routes available
+                    if routes.count > 1 {
+                        routeSelector
+                    }
+                    
+                    // Route summary card
+                    routeSummaryCard
+                    
+                    // Suitability indicator
+                    suitabilitySection
+                    
+                    // Obstacles section
+                    if !selectedRoute.obstacles.isEmpty {
+                        obstaclesSection
+                    }
+                    
+                    // Accessibility features section
+                    if !selectedRoute.features.isEmpty {
+                        featuresSection
+                    }
                 }
-                
-                // Route summary card
-                routeSummaryCard
-                
-                // Suitability indicator
-                suitabilitySection
-                
-                // Obstacles section
-                if !selectedRoute.obstacles.isEmpty {
-                    obstaclesSection
-                }
-                
-                // Accessibility features section
-                if !selectedRoute.features.isEmpty {
-                    featuresSection
-                }
-                
-                // Start navigation button
-                startNavigationButton
+                .padding()
+                .padding(.bottom, 80) // Space for bottom button
             }
-            .padding()
+            
+            // Start navigation button overlay
+            Button(action: {
+                // Haptic feedback
+                let feedback = UINotificationFeedbackGenerator()
+                feedback.notificationOccurred(.success)
+                showingNavigationAlert = true
+            }) {
+                HStack {
+                    Image(systemName: "location.fill")
+                    Text("Start Navigation")
+                        .fontWeight(.semibold)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 16)
+                .foregroundStyle(.white)
+                .glassEffect(.clear.tint(Color.accentColor.opacity(0.9)), in: .capsule)
+                .padding(.horizontal, 30)
+            }
+            .sensoryFeedback(.success, trigger: showingNavigationAlert)
+            .accessibilityLabel("Start navigation")
+            .accessibilityHint("Begin turn-by-turn navigation for this route")
         }
         .navigationTitle("Route Details")
         .navigationBarTitleDisplayMode(.inline)
@@ -198,6 +220,7 @@ struct RouteDetailView: View {
                 }
             }
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
         .accessibilityElement(children: .contain)
         .accessibilityLabel("Obstacles section")
     }
@@ -214,32 +237,11 @@ struct RouteDetailView: View {
                 }
             }
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
         .accessibilityElement(children: .contain)
         .accessibilityLabel("Accessibility features section")
     }
     
-    private var startNavigationButton: some View {
-        Button(action: {
-            // Haptic feedback
-            let feedback = UINotificationFeedbackGenerator()
-            feedback.notificationOccurred(.success)
-            showingNavigationAlert = true
-        }) {
-            HStack {
-                Image(systemName: "location.fill")
-                Text("Start Navigation")
-                    .fontWeight(.semibold)
-            }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 16)
-            .background(Color.accentColor)
-            .foregroundStyle(.white)
-            .clipShape(RoundedRectangle(cornerRadius: 12))
-        }
-        .sensoryFeedback(.success, trigger: showingNavigationAlert)
-        .accessibilityLabel("Start navigation")
-        .accessibilityHint("Begin turn-by-turn navigation for this route")
-    }
     
     // MARK: - Helper Properties
     
@@ -323,7 +325,7 @@ struct MetricView: View {
         VStack(spacing: 8) {
             Image(systemName: icon)
                 .font(.title3)
-                .foregroundStyle(.black)
+                .foregroundStyle(Color.accentColor)
             
             Text(value)
                 .font(.headline)

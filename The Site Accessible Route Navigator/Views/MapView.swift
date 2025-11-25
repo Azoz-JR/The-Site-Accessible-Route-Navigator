@@ -35,7 +35,7 @@ struct MapView: View {
     }
     
     var body: some View {
-        ZStack(alignment: .bottom) {
+        ZStack {
             // Map with POI annotations
             Map(position: $cameraPosition) {
                 ForEach(navigationService.allPOIs) { poi in
@@ -64,99 +64,94 @@ struct MapView: View {
             .accessibilityLabel("Map of Trieste showing accessible routes")
             .accessibilityHint("Tap on points of interest to select origin and destination")
             
-            // Bottom sheet for destination selection
-            VStack(spacing: 0) {
-                // Handle bar
-                RoundedRectangle(cornerRadius: 2.5)
-                    .fill(Color.secondary.opacity(0.5))
-                    .frame(width: 40, height: 5)
-                    .padding(.top, 8)
-                    .accessibilityHidden(true)
-                
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 20) {
-                        // Profile indicator
-                        HStack {
-                            Image(systemName: selectedProfile.icon)
-                                .foregroundStyle(.black)
-                            Text("Profile: \(selectedProfile.rawValue)")
+            // Compact top overlay for route selection
+            VStack {
+                VStack(spacing: 0) {
+                    // Starting point
+                    HStack(spacing: 12) {
+                        Image(systemName: "circle.fill")
+                            .font(.caption)
+                            .foregroundStyle(.green)
+                        
+                        if let origin = selectedOrigin {
+                            Text(origin.name)
                                 .font(.subheadline)
-                                .fontWeight(.medium)
-                            Spacer()
+                                .lineLimit(1)
+                        } else {
+                            Text("Select starting point")
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
                         }
-                        .padding(.horizontal)
-                        .padding(.top, 12)
-                        .accessibilityElement(children: .combine)
-                        .accessibilityLabel("Selected profile: \(selectedProfile.rawValue)")
                         
-                        Divider()
-                        
-                        // Origin selection
-                        VStack(alignment: .leading, spacing: 12) {
-                            Label("Starting Point", systemImage: "mappin.circle.fill")
-                                .font(.headline)
-                                .foregroundStyle(.green)
-                            
-                            if let origin = selectedOrigin {
-                                SelectedPOIRow(poi: origin, profile: selectedProfile)
-                                    .accessibilityLabel("Starting point: \(origin.name)")
-                            } else {
-                                Text("Tap a location on the map")
-                                    .font(.subheadline)
-                                    .foregroundStyle(.secondary)
-                                    .accessibilityLabel("No starting point selected. Tap a location on the map")
-                            }
-                        }
-                        .padding(.horizontal)
-                        
-                        // Destination selection
-                        VStack(alignment: .leading, spacing: 12) {
-                            Label("Destination", systemImage: "mappin.circle.fill")
-                                .font(.headline)
-                                .foregroundStyle(.red)
-                            
-                            if let destination = selectedDestination {
-                                SelectedPOIRow(poi: destination, profile: selectedProfile)
-                                    .accessibilityLabel("Destination: \(destination.name)")
-                            } else {
-                                Text("Tap a location on the map")
-                                    .font(.subheadline)
-                                    .foregroundStyle(.secondary)
-                                    .accessibilityLabel("No destination selected. Tap a location on the map")
-                            }
-                        }
-                        .padding(.horizontal)
-                        
-                        // Find Route button
-                        if selectedOrigin != nil && selectedDestination != nil {
-                            Button(action: findRoute) {
-                                HStack {
-                                    Image(systemName: "arrow.triangle.turn.up.right.circle.fill")
-                                    Text("Find Accessible Routes")
-                                        .fontWeight(.semibold)
-                                }
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, 16)
-                                .background(Color.accentColor)
-                                .foregroundStyle(.white)
-                                .clipShape(RoundedRectangle(cornerRadius: 12))
-                            }
-                            .padding(.horizontal)
-                            .sensoryFeedback(.success, trigger: showingRoutes)
-                            .accessibilityLabel("Find accessible routes")
-                            .accessibilityHint("Calculate and display route options")
-                        }
+                        Spacer()
                     }
-                    .padding(.bottom, 20)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 12)
+                    .accessibilityElement(children: .combine)
+                    .accessibilityLabel(selectedOrigin != nil ? "Starting point: \(selectedOrigin!.name)" : "No starting point selected")
+                    
+                    Divider()
+                        .padding(.horizontal, 12)
+                    
+                    // Destination
+                    HStack(spacing: 12) {
+                        Image(systemName: "mappin.circle.fill")
+                            .font(.caption)
+                            .foregroundStyle(.red)
+                        
+                        if let destination = selectedDestination {
+                            Text(destination.name)
+                                .font(.subheadline)
+                                .lineLimit(1)
+                        } else {
+                            Text("Select destination")
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                        }
+                        
+                        Spacer()
+                        
+                        // Profile indicator
+                        Image(systemName: selectedProfile.icon)
+                            .font(.caption)
+                            .foregroundStyle(Color.accentColor)
+                            .accessibilityLabel("Profile: \(selectedProfile.rawValue)")
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 12)
+                    .accessibilityElement(children: .combine)
+                    .accessibilityLabel(selectedDestination != nil ? "Destination: \(selectedDestination!.name)" : "No destination selected")
                 }
-                .frame(maxHeight: 320)
+                .glassEffect(.regular, in: RoundedRectangle(cornerRadius: 16))
+                .padding(.horizontal, 16)
+                .padding(.top, 8)
+                .shadow(color: .black.opacity(0.1), radius: 8, y: 4)
+                
+                Spacer()
             }
-            .background(
-                RoundedRectangle(cornerRadius: 20)
-                    .fill(.ultraThinMaterial)
-                    .shadow(radius: 10)
-            )
-            .padding(.horizontal, 8)
+            
+            // Find Route button overlay at bottom
+            if selectedOrigin != nil && selectedDestination != nil {
+                VStack {
+                    Spacer()
+                    
+                    Button(action: findRoute) {
+                        HStack {
+                            Image(systemName: "arrow.triangle.turn.up.right.circle.fill")
+                            Text("Find Accessible Routes")
+                                .fontWeight(.semibold)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 16)
+                        .foregroundStyle(.white)
+                        .glassEffect(.clear.tint(Color.accentColor.opacity(0.9)), in: .capsule)
+                        .padding(.horizontal, 30)
+                    }
+                    .sensoryFeedback(.success, trigger: showingRoutes)
+                    .accessibilityLabel("Find accessible routes")
+                    .accessibilityHint("Calculate and display route options")
+                }
+            }
         }
         .navigationTitle("Find Your Route")
         .navigationBarTitleDisplayMode(.inline)
@@ -282,7 +277,7 @@ struct SelectedPOIRow: View {
         HStack(spacing: 12) {
             Image(systemName: poi.category.icon)
                 .font(.title3)
-                .foregroundStyle(.black)
+                .foregroundStyle(Color.accentColor)
                 .frame(width: 32)
             
             VStack(alignment: .leading, spacing: 4) {
